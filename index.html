@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feline Panleukopenia Virus Simulation</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Feline Panleukopenia Virus Simulation</h1>
+    <form id="simulationForm">
+        <label for="population">Total Population:</label>
+        <input type="number" id="population" name="population" value="1000" required>
+        
+        <label for="initialInfected">Initial Infected:</label>
+        <input type="number" id="initialInfected" name="initialInfected" value="10" required>
+        
+        <label for="transmissionRate">Direct Transmission Rate (0-1):</label>
+        <input type="number" id="transmissionRate" name="transmissionRate" value="0.8" step="0.01" min="0" max="1" required>
+        
+        <label for="recoveryRate">Recovery Rate (0-1):</label>
+        <input type="number" id="recoveryRate" name="recoveryRate" value="0.04" step="0.01" min="0" max="1" required>
+        
+        <label for="reinfectionRate">Reinfection Rate (0-1):</label>
+        <input type="number" id="reinfectionRate" name="reinfectionRate" value="0.1" step="0.01" min="0" max="1" required>
+        
+        <label for="kittenPercentage">Percentage of Kittens (0-1):</label>
+        <input type="number" id="kittenPercentage" name="kittenPercentage" value="0.3" step="0.01" min="0" max="1" required>
+        
+        <label for="vaccinatedPercentage">Percentage of Vaccinated Cats (0-1):</label>
+        <input type="number" id="vaccinatedPercentage" name="vaccinatedPercentage" value="0.5" step="0.01" min="0" max="1" required>
+        
+        <label for="treatmentPercentage">Percentage of Treated Cats (0-1):</label>
+        <input type="number" id="treatmentPercentage" name="treatmentPercentage" value="0.7" step="0.01" min="0" max="1" required>
+        
+        <label for="sheddingRate">Shedding Rate (0-1):</label>
+        <input type="number" id="sheddingRate" name="sheddingRate" value="0.5" step="0.01" min="0" max="1" required>
+        
+        <label for="environmentalTransmissionRate">Environmental Transmission Rate (0-1):</label>
+        <input type="number" id="environmentalTransmissionRate" name="environmentalTransmissionRate" value="0.3" step="0.01" min="0" max="1" required>
+        
+        <label for="virusDecayRate">Virus Decay Rate (0-1):</label>
+        <input type="number" id="virusDecayRate" name="virusDecayRate" value="0.1" step="0.01" min="0" max="1" required>
+        
+        <label for="simulationDays">Simulation Days:</label>
+        <input type="number" id="simulationDays" name="simulationDays" value="30" required>
+        
+        <button type="submit">Run Simulation</button>
+    </form>
+    <div id="result"></div>
+    <script src="core.js"></script>
+</body>
+</html>

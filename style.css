@@ -1,0 +1,102 @@
+body {
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	max-width: 1000px;
+	margin: 0 auto;
+	padding: 20px;
+	background-color: #f0f0f0;
+	color: #333;
+}
+
+h1,
+h2 {
+	color: #2c3e50;
+	text-align: center;
+}
+
+h1 {
+    margin-top: 0px;
+    margin-bottom: 20px;
+}
+
+form {
+	background-color: white;
+	padding: 20px;
+	border-radius: 10px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	margin-bottom: 20px;
+}
+
+label {
+	display: block;
+	margin-bottom: 5px;
+	color: #2c3e50;
+}
+
+input {
+	width: 100%;
+	padding: 10px;
+	margin-bottom: 15px;
+	border: 1px solid #ddd;
+	border-radius: 10px;
+	box-sizing: border-box;
+}
+
+button {
+	background-color: #3498db;
+	color: white;
+	padding: 10px 15px;
+	border: none;
+	border-radius: 10px;
+	cursor: pointer;
+	width: 100%;
+	font-size: 16px;
+}
+
+button:hover {
+	background-color: #2980b9;
+}
+
+#result {
+	background-color: white;
+	border-radius: 10px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	overflow-x: auto;
+	/* Make the div scrollable on small screens */
+}
+
+#result-container {
+	max-height: 400px;
+	/* Set a max height for the result container */
+	overflow-y: auto;
+	/* Enable vertical scrolling */
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+th,
+td {
+	padding: 10px 20px;
+	text-align: left;
+}
+
+th {
+	background-color: #f2f2f2;
+	color: #2c3e50;
+	position: sticky;
+	top: 0;
+	z-index: 1;
+}
+
+tr:nth-child(even) {
+	background-color: #f9f9f9;
+}
+
+.early-end-message {
+	color: #e74c3c;
+	font-weight: bold;
+	text-align: center;
+	margin-bottom: 15px;
+}
