@@ -94,6 +94,16 @@ tr:nth-child(even) {
 	background-color: #f9f9f9;
 }
 
+.stat-container .stat-value:not(:last-child) {
+    margin-bottom: 5px;
+}
+
+.stat-value span {
+    display: block;
+    text-transform: uppercase;
+    font-size: 12px;
+}
+
 .early-end-message {
 	color: #e74c3c;
 	font-weight: bold;

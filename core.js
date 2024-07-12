@@ -37,31 +37,31 @@ function simulatePanleukapaniaSpread(
 		}
 
 		// Direct transmission
-		const directTransmissions = Math.round(infected * susceptible * transmissionRate / population);
+		const directTransmissions = binomialSample(susceptible, transmissionRate * infected / population);
 
 		// Environmental transmission
-		const environmentalTransmissions = Math.round(susceptible * environmentalVirus * environmentalTransmissionRate / population);
+		const environmentalTransmissions = binomialSample(susceptible, environmentalTransmissionRate * environmentalVirus / population);
 
 		// Total new exposures
 		const newExposures = Math.min(susceptible, directTransmissions + environmentalTransmissions);
 
-		// Move cats from exposed to incubating (assume 2-day exposure period)
-		const newlyIncubating = Math.round(exposed / 2);
+		// Move cats from exposed to incubating
+		const newlyIncubating = binomialSample(exposed, 1 / getRandomIncubationPeriod());
 
-		// Move cats from incubating to infected (assume 4-day incubation period)
-		const newlyInfected = Math.round(incubating / 4);
+		// Move cats from incubating to infected
+		const newlyInfected = binomialSample(incubating, 1 / getRandomIncubationPeriod());
 
 		// Calculate deaths based on age, vaccination, and treatment status
-		const kittenDeaths = Math.round(infected * kittenPercentage * 0.9); // 90% mortality for kittens
-		const unvaccinatedDeaths = Math.round(infected * (1 - kittenPercentage) * (1 - vaccinatedPercentage) * (treatmentPercentage ? 0.5 : 0.85));
-		const vaccinatedDeaths = Math.round(infected * (1 - kittenPercentage) * vaccinatedPercentage * (treatmentPercentage ? 0.1 : 0.15));
+		const kittenDeaths = binomialSample(infected * kittenPercentage, 0.9); // 90% mortality for kittens
+		const unvaccinatedDeaths = binomialSample(infected * (1 - kittenPercentage) * (1 - vaccinatedPercentage), treatmentPercentage ? 0.5 : 0.85);
+		const vaccinatedDeaths = binomialSample(infected * (1 - kittenPercentage) * vaccinatedPercentage, treatmentPercentage ? 0.1 : 0.15);
 		const newDeaths = kittenDeaths + unvaccinatedDeaths + vaccinatedDeaths;
 
 		// Recoveries
-		const newRecoveries = Math.round(infected * recoveryRate);
+		const newRecoveries = binomialSample(infected, recoveryRate);
 
 		// Reinfections
-		const reinfections = Math.round(recovered * reinfectionRate);
+		const reinfections = binomialSample(recovered, reinfectionRate);
 
 		// Update population groups
 		susceptible = susceptible - newExposures;
@@ -72,7 +72,8 @@ function simulatePanleukapaniaSpread(
 		deaths += newDeaths;
 
 		// Update environmental virus
-		environmentalVirus = environmentalVirus * (1 - virusDecayRate) + infected * sheddingRate;
+		const actualSheddingRate = sheddingRate * (1 + (Math.random() - 0.5) * 0.2); // +/- 10% variation
+		environmentalVirus = environmentalVirus * (1 - virusDecayRate * (1 + (Math.random() - 0.5) * 0.1)) + infected * actualSheddingRate;
 
 		// Ensure we don't have negative values
 		susceptible = Math.max(0, susceptible);
@@ -95,6 +96,72 @@ function simulatePanleukapaniaSpread(
 	}
 
 	return dailyStats;
+}
+
+function binomialSample(n, p) {
+    if (n < 0 || p < 0 || p > 1) {
+        return 0; // Return 0 for invalid inputs
+    }
+    if (n > 1000000) {
+        // For very large n, use normal approximation
+        const mean = n * p;
+        const stdDev = Math.sqrt(n * p * (1 - p));
+        return Math.max(0, Math.round(normalRandom(mean, stdDev)));
+    }
+    return Math.round(Array.from({length: n}, () => Math.random() < p ? 1 : 0).reduce((sum, val) => sum + val, 0));
+}
+
+function getRandomIncubationPeriod() {
+    return Math.max(1, Math.round(normalRandom(3, 1))); // Mean of 3 days, std dev of 1
+}
+
+function normalRandom(mean, stdDev) {
+    const u = 1 - Math.random();
+    const v = Math.random();
+    const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+    return z * stdDev + mean;
+}
+
+function runMonteCarlo(numSimulations, ...params) {
+    const allResults = [];
+    for (let i = 0; i < numSimulations; i++) {
+        allResults.push(simulatePanleukapaniaSpread(...params));
+    }
+    return aggregateResults(allResults);
+}
+
+function aggregateResults(allResults) {
+    const aggregated = [];
+    const numDays = Math.max(...allResults.map(result => result.length));
+
+    for (let day = 0; day < numDays; day++) {
+        const dayStats = allResults.map(result => result[day] || {
+            susceptible: 0, exposed: 0, incubating: 0, infected: 0, recovered: 0, deaths: 0, environmentalVirus: 0
+        });
+
+        aggregated.push({
+            day,
+            susceptible: calculateStats(dayStats.map(s => s.susceptible)),
+            exposed: calculateStats(dayStats.map(s => s.exposed)),
+            incubating: calculateStats(dayStats.map(s => s.incubating)),
+            infected: calculateStats(dayStats.map(s => s.infected)),
+            recovered: calculateStats(dayStats.map(s => s.recovered)),
+            deaths: calculateStats(dayStats.map(s => s.deaths)),
+            environmentalVirus: calculateStats(dayStats.map(s => s.environmentalVirus))
+        });
+    }
+
+    return aggregated;
+}
+
+function calculateStats(values) {
+    const sorted = values.sort((a, b) => a - b);
+    return {
+        min: sorted[0],
+        max: sorted[sorted.length - 1],
+        median: sorted[Math.floor(sorted.length / 2)],
+        mean: values.reduce((sum, val) => sum + val, 0) / values.length
+    };
 }
 
 function displayResults(results) {
@@ -125,28 +192,44 @@ function displayResults(results) {
 	container.appendChild(table);
 	resultDiv.appendChild(container);
 
-	if (results[results.length - 1].susceptible + results[results.length - 1].exposed + results[results.length - 1].incubating + results[results.length - 1].infected + results[results.length - 1].recovered === 0) {
-		const message = document.createElement('p');
-		message.textContent = `Simulation ended early on day ${results.length - 1} as all cats died.`;
-		message.className = 'early-end-message';
-		resultDiv.insertBefore(message, container);
-	}
-
 	const tbody = document.getElementById('results-body');
 	results.forEach(day => {
 		const row = document.createElement('tr');
 		row.innerHTML = `
 			<td>${day.day}</td>
-			<td>${day.susceptible}</td>
-			<td>${day.exposed}</td>
-			<td>${day.incubating}</td>
-			<td>${day.infected}</td>
-			<td>${day.recovered}</td>
-			<td>${day.deaths}</td>
-			<td>${day.environmentalVirus.toFixed(2)}</td>
+			<td>${formatStat(day.susceptible)}</td>
+			<td>${formatStat(day.exposed)}</td>
+			<td>${formatStat(day.incubating)}</td>
+			<td>${formatStat(day.infected)}</td>
+			<td>${formatStat(day.recovered)}</td>
+			<td>${formatStat(day.deaths)}</td>
+			<td>${formatStat(day.environmentalVirus)}</td>
 		`;
 		tbody.appendChild(row);
 	});
+}
+
+function formatStat(stat) {
+    return (`
+        <div class="stat-container">
+            <div class="stat-value">
+                <span>Mean:</span>
+                ${stat.mean.toFixed(2)}
+            </div>
+            <div class="stat-value">
+                <span>Median:</span>
+                ${stat.median.toFixed(2)}
+            </div>
+            <div class="stat-value">
+                <span>Min:</span>
+                ${stat.min.toFixed(2)}
+            </div>
+            <div class="stat-value">
+                <span>Max:</span>
+                ${stat.max.toFixed(2)}
+            </div>
+        </div>
+    `);
 }
 
 document.getElementById('simulationForm').addEventListener('submit', function (event) {
@@ -165,8 +248,10 @@ document.getElementById('simulationForm').addEventListener('submit', function (e
 	const environmentalTransmissionRate = parseFloat(formData.get('environmentalTransmissionRate'));
 	const virusDecayRate = parseFloat(formData.get('virusDecayRate'));
 	const simulationDays = parseInt(formData.get('simulationDays'));
+	const numSimulations = parseInt(formData.get('numSimulations') || 100);
 
-	const results = simulatePanleukapaniaSpread(
+	const results = runMonteCarlo(
+		numSimulations,
 		population,
 		initialInfected,
 		transmissionRate,
